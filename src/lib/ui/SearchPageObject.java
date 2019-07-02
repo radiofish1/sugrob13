@@ -1,0 +1,75 @@
+package lib.ui;
+
+import io.appium.java_client.AppiumDriver;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+public class SearchPageObject extends MainPageObject {
+
+    private static final String
+            SEARCH_INIT_ELEMENT = "xpath://*[contains(@text, 'Search Wikipedia')]",
+            SEARCH_INPUT = "xpath://*[@resource-id='org.wikipedia:id/search_src_text']",
+            SEARCH_RESULT_TITLE_ELEMENT = "xpath://*[@resource-id='org.wikipedia:id/page_list_item_title']",
+            SEARCH_RESULT_BY_SUBSTRING_TPL = "xpath://*[@resource-id='org.wikipedia:id/fragment_search_results']//*[contains(@text, '{SUBSTRING}')]",
+            SEARCH_CLOSE_BUTTON = "xpath://*[@resource-id='org.wikipedia:id/search_close_btn']",
+            SEARCH_RESULT_BY_TITLE_AND_SUBTITLE = "xpath://*[contains(@text, '{TITLE}')]/following-sibling::*[contains(@text, '{SUBTITLE}')]/parent::*";
+
+    public SearchPageObject(AppiumDriver driver){
+        super(driver);
+    }
+
+
+    private static String getResultSearchElement(String substr) {
+        return SEARCH_RESULT_BY_SUBSTRING_TPL.replace("{SUBSTRING}", substr);
+    }
+
+    private static String getSearchResultElementByTitleAndSubtitle(String title, String subtitle){
+        return SEARCH_RESULT_BY_TITLE_AND_SUBTITLE.replace("{TITLE}", title).replace("{SUBTITLE}", subtitle);
+    }
+
+
+    public void initSearchInput(){
+        this.waitForElementAndClick(SEARCH_INIT_ELEMENT, "There is no search field on the screen", 5);
+        this.waitForElementPresent(SEARCH_INIT_ELEMENT, "Cannot find search input after clicking search init element");
+    }
+
+    public void typeSearchLine(String seach_line){
+        this.waitForElementAndSendKeys(SEARCH_INPUT, seach_line, "Cannot find and type into search input", 5);
+    }
+
+    public void waitForSearchResult(String substring){
+        String searchResultXpath = getResultSearchElement(substring);
+        this.waitForElementPresent(SEARCH_RESULT_BY_SUBSTRING_TPL, "Cannot find search result");
+    }
+
+    public void clickForSearchResult(String substring){
+        String search_result_xpath = getResultSearchElement(substring);
+        this.waitForElementAndClick(SEARCH_RESULT_BY_SUBSTRING_TPL, "Cannot find search result", 10);
+    }
+
+    public List<WebElement> getSearchResult(){
+        List<WebElement> searchResults = this.waitForListOfElementsPresentByXPath(SEARCH_RESULT_TITLE_ELEMENT,"There is no search results on the screen", 15);
+        return searchResults;
+    }
+
+    public int getSearchResultCount(){
+        List<WebElement> searchResults = getSearchResult();
+        return searchResults.size();
+    }
+
+    public void clickSearchCloseButton(){
+        this.waitForElementAndClick(SEARCH_CLOSE_BUTTON, "There is no search close button on the screen", 5);
+    }
+
+    public void waitForSearchResultToDisappear(){
+        this.waitForElementNotPresent(SEARCH_RESULT_TITLE_ELEMENT, "Search results still present on the screen", 5);
+    }
+
+    public void waitForElementByTitleAndDescription(String title, String description){
+        String searchResultXpath = getSearchResultElementByTitleAndSubtitle(title, description);
+        this.waitForElementPresent(SEARCH_RESULT_BY_SUBSTRING_TPL, "Cannot find search result by title '" + title + "' and subtitle '" + description + "'");
+    }
+
+}
